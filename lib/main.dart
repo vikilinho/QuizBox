@@ -1,3 +1,4 @@
+import 'package:QuizBox/quizBank.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,24 +10,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: QuizBox(),
+      home: Center(child: QuizBox()),
     );
   }
 }
@@ -37,10 +26,108 @@ class QuizBox extends StatefulWidget {
 }
 
 class _QuizBoxState extends State<QuizBox> {
+  var brain = Quizbrain();
+  List<Icon> scoreKeeper = [];
+  void _checkAnswer() {
+    if (!brain.isFinished()) {
+      setState(() {
+        if (brain.getAnswer()) {
+          scoreKeeper.add(
+            Icon(
+              Icons.check,
+              color: Colors.green,
+            ),
+          );
+        } else {
+          scoreKeeper.add(
+            Icon(
+              Icons.close,
+              color: Colors.red,
+            ),
+          );
+        }
+        brain.nextQuestion();
+      });
+    } else {
+      reset();
+    }
+  }
+
+  void reset() {
+    AlertDialog(
+      title: Text("Quiz"),
+      content: Text(" You have reached the end of the quiz"),
+      actions: [
+        TextButton(
+            onPressed: () {
+              setState(() {
+                brain.reset();
+                scoreKeeper.clear();
+              });
+              Navigator.pop(context);
+            },
+            child: Text("Reset"))
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("QuizBrain"),
+        ),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 5,
+                          child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(child: Text(brain.getQuestion(), textAlign: TextAlign.center,)),
+              ),
+            ),
+            Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(15.0),
+            child: FlatButton(
+              textColor: Colors.white,
+              color: Colors.green,
+              child: Text(
+                'True',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20.0,
+                ),
+              ),
+              onPressed: () => this._checkAnswer(),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(15.0),
+            child: FlatButton(
+              color: Colors.red,
+              child: Text(
+                'False',
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.white,
+                ),
+              ),
+              onPressed: () => this._checkAnswer(),
+            ),
+          ),
+        ),
+         Row(
+          children: scoreKeeper,
+        ),
+          ],
+        ),
+      ),
     );
   }
 }
